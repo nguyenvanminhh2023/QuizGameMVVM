@@ -27,9 +27,7 @@ class SignInFragment : Fragment() {
         authViewModel = ViewModelProvider(
             this,
             ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        ).get(
-            AuthViewModel::class.java
-        )
+        )[AuthViewModel::class.java]
     }
 
     override fun onCreateView(
