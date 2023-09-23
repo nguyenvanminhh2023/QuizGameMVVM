@@ -1,5 +1,6 @@
 package com.example.quizgamemvvm.fragment
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,12 +15,20 @@ import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentSignInBinding
 import com.example.quizgamemvvm.viewmodel.AuthViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class SignInFragment : Fragment() {
 
     private lateinit var fragmentSignInBinding: FragmentSignInBinding
     private lateinit var authViewModel: AuthViewModel
     private lateinit var navController: NavController
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +81,51 @@ class SignInFragment : Fragment() {
 //                Toast.makeText(context, "Welcome to Quiz Game", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        fragmentSignInBinding.btnSignInGg.setOnClickListener {
+            signInGoogle()
+        }
+    }
+
+    private fun signInGoogle() {
+        val googleSignInOptions  = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("689076638005-j1jmdunonnlgb4brrvu4ro9ct8qq0rmi.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), googleSignInOptions)
+
+        // Initialize sign in intent
+        val intent = googleSignInClient.signInIntent
+        // Start activity for result
+        startActivityForResult(intent, 100)
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 100) {
+            // When request code is equal to 100 initialize task
+            val signInAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data)
+            // check condition
+            if (signInAccountTask.isSuccessful) {
+                Toast.makeText(requireActivity(), "Welcome to Quiz Game", Toast.LENGTH_SHORT).show()
+                navController.navigate(R.id.action_signInFragment_to_homeFragment)
+                try {
+                    // Initialize sign in account
+                    val googleSignInAccount = signInAccountTask.getResult(ApiException::class.java)
+                    if (googleSignInAccount != null) {
+                        // When sign in account is not equal to null initialize auth credential
+                        val authCredential = GoogleAuthProvider.getCredential(googleSignInAccount.idToken, null)
+                        // Check credential
+                        Firebase.auth.signInWithCredential(authCredential)
+                    }
+                } catch (e: ApiException) {
+                    e.printStackTrace()
+                }
             }
         }
     }

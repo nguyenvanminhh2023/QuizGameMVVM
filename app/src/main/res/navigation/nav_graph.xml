@@ -8,11 +8,7 @@
         android:id="@+id/signUpFragment"
         android:name="com.example.quizgamemvvm.fragment.SignUpFragment"
         android:label="fragment_sign_up"
-        tools:layout="@layout/fragment_sign_up" >
-        <action
-            android:id="@+id/action_signUpFragment_to_signInFragment"
-            app:destination="@id/signInFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_sign_up" />
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.quizgamemvvm.fragment.HomeFragment"
@@ -60,5 +56,13 @@
         android:label="fragment_result"
         tools:layout="@layout/fragment_result" >
 
+        <argument
+            android:name="correctArg"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="wrongArg"
+            app:argType="integer"
+            android:defaultValue="0" />
     </fragment>
 </navigation>

@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentQuizBinding
 import com.example.quizgamemvvm.model.QuestionModel
@@ -50,6 +51,8 @@ class QuizFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        navController = Navigation.findNavController(view)
 
         questionViewModel.questionMutableLiveData.observe(viewLifecycleOwner) {
             listQuestions.addAll(it)
@@ -171,7 +174,6 @@ class QuizFragment : Fragment() {
                 disableChooseAnswers()
                 fragmentQuizBinding.tvQuestion.text = getString(R.string.times_up)
             }
-
         }.start()
     }
 
@@ -200,10 +202,14 @@ class QuizFragment : Fragment() {
             .setTitle("Quiz Game")
             .setMessage(R.string.dialog_message)
             .setPositiveButton("SEE RESULT") { _: DialogInterface, _ ->
-
+                val action = QuizFragmentDirections.actionQuizragmentToResultFragment(
+                    correctArg = correctCount,
+                    wrongArg = wrongCount
+                )
+                navController.navigate(action)
             }
             .setNegativeButton("PLAY AGAIN") { _: DialogInterface, _ ->
-
+                navController.popBackStack()
             }
             .create()
             .show()
