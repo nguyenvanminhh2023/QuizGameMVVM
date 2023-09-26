@@ -138,6 +138,7 @@ class QuizFragment : Fragment() {
             fragmentQuizBinding.tvA.text = question.optionA
             fragmentQuizBinding.tvB.text = question.optionB
             fragmentQuizBinding.tvC.text = question.optionC
+
             fragmentQuizBinding.tvD.text = question.optionD
             correctAnswer = question.correctAnswer
 

@@ -1,21 +1,16 @@
 package com.example.quizgamemvvm.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.example.quizgamemvvm.repository.AuthRepository
 import com.google.firebase.auth.FirebaseUser
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
-    val firebaseUserMutableLiveData: MutableLiveData<FirebaseUser>
-    val currentUser: FirebaseUser?
-    private val repository: AuthRepository
-
-    init {
-        repository = AuthRepository(application)
-        currentUser = repository.currentUser
-        firebaseUserMutableLiveData = repository.firebaseUserMutableLiveData
-    }
+    private val repository = AuthRepository(application)
+    val userData: MutableLiveData<FirebaseUser> = repository.firebaseUserMutableLiveData
+    val loggedStatus = repository.userLoggedMutableLiveData
 
     fun signUp(email: String?, pass: String?) {
         repository.signUp(email, pass)

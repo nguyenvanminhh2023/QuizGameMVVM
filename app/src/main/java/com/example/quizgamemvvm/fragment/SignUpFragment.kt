@@ -7,11 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentSignUpBinding
 import com.example.quizgamemvvm.viewmodel.AuthViewModel
+import com.google.firebase.auth.FirebaseUser
 
 class SignUpFragment : Fragment() {
 
@@ -27,6 +29,14 @@ class SignUpFragment : Fragment() {
             ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
         ).get(
             AuthViewModel::class.java
+        )
+
+        authViewModel.userData.observe(this,
+            Observer<FirebaseUser?> { firebaseUser ->
+                if (firebaseUser != null) {
+                    navController.popBackStack()
+                }
+            }
         )
     }
 
@@ -49,12 +59,12 @@ class SignUpFragment : Fragment() {
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 authViewModel.signUp(email, password)
-                authViewModel.firebaseUserMutableLiveData
-                    .observe(viewLifecycleOwner) { firebaseUser ->
-                        if (firebaseUser != null) {
-                            navController.popBackStack()
-                        }
-                    }
+//                authViewModel.userData
+//                    .observe(viewLifecycleOwner) { firebaseUser ->
+//                        if (firebaseUser != null) {
+//                            navController.popBackStack()
+//                        }
+//                    }
             } else {
                 Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
             }
