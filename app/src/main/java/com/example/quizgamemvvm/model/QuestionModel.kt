@@ -6,6 +6,6 @@ data class QuestionModel(
     var optionA: String = "",
     var optionB: String = "",
     var optionC: String = "",
-    var optionD: String= "",
-    var correctAnswer: String= ""
+    var optionD: String = "",
+    var correctAnswer: String = ""
 )

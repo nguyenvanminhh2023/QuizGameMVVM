@@ -3,6 +3,7 @@ package com.example.quizgamemvvm.fragment
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentSignInBinding
 import com.example.quizgamemvvm.viewmodel.AuthViewModel
+import com.example.quizgamemvvm.viewmodel.IAuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -30,13 +32,24 @@ import com.google.firebase.ktx.Firebase
 class SignInFragment : Fragment() {
 
     private lateinit var fragmentSignInBinding: FragmentSignInBinding
-    private lateinit var authViewModel: AuthViewModel
+    private lateinit var authViewModel: IAuthViewModel
     private lateinit var navController: NavController
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var auth: FirebaseAuth
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        authViewModel = ViewModelProvider(requireActivity())[AuthViewModel::class.java]
+
+        authViewModel.getUserData().observe(this,
+            Observer<FirebaseUser?> { firebaseUser ->
+                if (firebaseUser != null) {
+                    navController.navigate(R.id.action_signInFragment_to_homeFragment)
+                }
+            }
+        )
+
         auth = Firebase.auth
         val googleSignInOptions  = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("689076638005-j1jmdunonnlgb4brrvu4ro9ct8qq0rmi.apps.googleusercontent.com")
@@ -44,23 +57,6 @@ class SignInFragment : Fragment() {
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), googleSignInOptions)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        authViewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        )[AuthViewModel::class.java]
-
-        authViewModel.userData.observe(this,
-            Observer<FirebaseUser?> { firebaseUser ->
-                if (firebaseUser != null) {
-                    navController.navigate(R.id.action_signInFragment_to_homeFragment)
-                }
-            }
-        )
     }
 
     override fun onCreateView(
@@ -128,19 +124,18 @@ class SignInFragment : Fragment() {
                         // When sign in account is not equal to null initialize auth credential
                         val authCredential = GoogleAuthProvider.getCredential(googleSignInAccount.idToken, null)
                         // Check credential
-                        auth.signInWithCredential(authCredential).addOnCompleteListener(requireActivity()) { task ->
-                            if (task.isSuccessful) {
-                                Toast.makeText(requireActivity(), "Welcome to Quiz Game", Toast.LENGTH_SHORT).show()
-                                navController.navigate(R.id.action_signInFragment_to_homeFragment)
-                            } else {
-                                Toast.makeText(requireActivity(), task.exception?.localizedMessage, Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        authViewModel.signInWithGoogle(authCredential)
                     }
                 } catch (e: ApiException) {
                     e.printStackTrace()
                 }
+            } else {
+                Log.d("error task sign in google",
+                    signInAccountTask.exception.toString()
+                )
             }
+        } else {
+            Toast.makeText(requireActivity(), "error sign in google", Toast.LENGTH_SHORT).show()
         }
     }
 }

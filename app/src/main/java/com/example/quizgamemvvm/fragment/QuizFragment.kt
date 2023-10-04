@@ -15,12 +15,13 @@ import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentQuizBinding
 import com.example.quizgamemvvm.model.QuestionModel
+import com.example.quizgamemvvm.viewmodel.IQuestionViewModel
 import com.example.quizgamemvvm.viewmodel.QuestionViewModel
 
 class QuizFragment : Fragment() {
 
     private lateinit var fragmentQuizBinding: FragmentQuizBinding
-    private lateinit var questionViewModel: QuestionViewModel
+    private lateinit var questionViewModel: IQuestionViewModel
     private lateinit var navController: NavController
 
     private var listQuestions = ArrayList<QuestionModel>()
@@ -30,13 +31,11 @@ class QuizFragment : Fragment() {
     private var correctCount = 0
     private var wrongCount = 0
     private var correctAnswer = ""
+    private var chooseAnswer = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        questionViewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        )[QuestionViewModel::class.java]
+        questionViewModel = ViewModelProvider(requireActivity())[QuestionViewModel::class.java]
         questionViewModel.getQuestions()
     }
 
@@ -54,13 +53,14 @@ class QuizFragment : Fragment() {
 
         navController = Navigation.findNavController(view)
 
-        questionViewModel.questionMutableLiveData.observe(viewLifecycleOwner) {
+        questionViewModel.getQuestionLiveData().observe(viewLifecycleOwner) {
             listQuestions.addAll(it)
             questionTotal = listQuestions.size
             showQuestions()
         }
 
         fragmentQuizBinding.tvA.setOnClickListener {
+            chooseAnswer = true
             if (correctAnswer == "a") {
                 fragmentQuizBinding.tvA.setBackgroundColor(Color.GREEN)
                 correctCount++
@@ -76,6 +76,7 @@ class QuizFragment : Fragment() {
         }
 
         fragmentQuizBinding.tvB.setOnClickListener {
+            chooseAnswer = true
             if (correctAnswer == "b") {
                 fragmentQuizBinding.tvB.setBackgroundColor(Color.GREEN)
                 correctCount++
@@ -91,6 +92,7 @@ class QuizFragment : Fragment() {
         }
 
         fragmentQuizBinding.tvC.setOnClickListener {
+            chooseAnswer = true
             if (correctAnswer == "c") {
                 fragmentQuizBinding.tvC.setBackgroundColor(Color.GREEN)
                 correctCount++
@@ -106,6 +108,7 @@ class QuizFragment : Fragment() {
         }
 
         fragmentQuizBinding.tvD.setOnClickListener {
+            chooseAnswer = true
             if (correctAnswer == "d") {
                 fragmentQuizBinding.tvD.setBackgroundColor(Color.GREEN)
                 correctCount++
@@ -122,10 +125,16 @@ class QuizFragment : Fragment() {
 
         fragmentQuizBinding.btnNext.setOnClickListener {
             showQuestions()
+            if (chooseAnswer == false) {
+                wrongCount++
+                fragmentQuizBinding.tvWrong.text = wrongCount.toString()
+            }
+            chooseAnswer = false
         }
 
         fragmentQuizBinding.btnFinish.setOnClickListener {
-
+            questionViewModel.sendScore(questionTotal, correctCount)
+            navController.popBackStack()
         }
     }
 
@@ -153,6 +162,7 @@ class QuizFragment : Fragment() {
     }
 
     private fun resetQuestionUI() {
+        if (questionIndex > 0) stopCountDown()
         startCountDown()
         fragmentQuizBinding.tvA.setBackgroundColor(Color.WHITE)
         fragmentQuizBinding.tvB.setBackgroundColor(Color.WHITE)
@@ -173,7 +183,11 @@ class QuizFragment : Fragment() {
 
             override fun onFinish() {
                 disableChooseAnswers()
+                wrongCount++
+                fragmentQuizBinding.tvWrong.text = wrongCount.toString()
                 fragmentQuizBinding.tvQuestion.text = getString(R.string.times_up)
+                fragmentQuizBinding.tvQuestion.text = getString(R.string.times_up)
+                chooseAnswer = true
             }
         }.start()
     }
@@ -203,6 +217,7 @@ class QuizFragment : Fragment() {
             .setTitle("Quiz Game")
             .setMessage(R.string.dialog_message)
             .setPositiveButton("SEE RESULT") { _: DialogInterface, _ ->
+                questionViewModel.sendScore(questionTotal, correctCount)
                 val action = QuizFragmentDirections.actionQuizragmentToResultFragment(
                     correctArg = correctCount,
                     wrongArg = wrongCount
@@ -210,6 +225,7 @@ class QuizFragment : Fragment() {
                 navController.navigate(action)
             }
             .setNegativeButton("PLAY AGAIN") { _: DialogInterface, _ ->
+                questionViewModel.sendScore(questionTotal, correctCount)
                 navController.popBackStack()
             }
             .create()

@@ -12,22 +12,18 @@ import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentForgotPasswordBinding
 import com.example.quizgamemvvm.viewmodel.AuthViewModel
+import com.example.quizgamemvvm.viewmodel.IAuthViewModel
 
 class ForgotPasswordFragment : Fragment() {
 
     private lateinit var fragmentForgotPasswordBinding: FragmentForgotPasswordBinding
-    private lateinit var authViewModel: AuthViewModel
+    private lateinit var authViewModel: IAuthViewModel
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        authViewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        ).get(
-            AuthViewModel::class.java
-        )
+        authViewModel = ViewModelProvider(requireActivity())[AuthViewModel::class.java]
     }
 
     override fun onCreateView(

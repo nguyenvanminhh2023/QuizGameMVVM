@@ -13,25 +13,21 @@ import androidx.navigation.Navigation
 import com.example.quizgamemvvm.R
 import com.example.quizgamemvvm.databinding.FragmentSignUpBinding
 import com.example.quizgamemvvm.viewmodel.AuthViewModel
+import com.example.quizgamemvvm.viewmodel.IAuthViewModel
 import com.google.firebase.auth.FirebaseUser
 
 class SignUpFragment : Fragment() {
 
     private lateinit var fragmentSignUpBinding: FragmentSignUpBinding
-    private lateinit var authViewModel: AuthViewModel
+    private lateinit var authViewModel: IAuthViewModel
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        authViewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        ).get(
-            AuthViewModel::class.java
-        )
+        authViewModel = ViewModelProvider(requireActivity())[AuthViewModel::class.java]
 
-        authViewModel.userData.observe(this,
+        authViewModel.getUserData().observe(this,
             Observer<FirebaseUser?> { firebaseUser ->
                 if (firebaseUser != null) {
                     navController.popBackStack()

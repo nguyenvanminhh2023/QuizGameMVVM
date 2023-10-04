@@ -3,17 +3,19 @@ package com.example.quizgamemvvm.repository
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.quizgamemvvm.model.QuestionModel
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
-class QuestionRepository {
+class QuestionRepository : IQuestionRepository {
     private val database = Firebase.database
     private val myRef = database.reference.child("questions")
+    private val scoreRef = database.reference
 
-    fun getQuestions(liveData: MutableLiveData<List<QuestionModel>>) {
+    override fun getQuestions(liveData: MutableLiveData<List<QuestionModel>>) {
         myRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 Log.d("data", snapshot.value.toString())
@@ -34,7 +36,14 @@ class QuestionRepository {
             override fun onCancelled(error: DatabaseError) {
                 TODO("Not yet implemented")
             }
-
         })
+    }
+
+    override fun sendScore(questionTotal: Int, correctCount: Int) {
+        Firebase.auth.currentUser?.let {
+            val userUID = Firebase.auth.currentUser?.uid.toString()
+            scoreRef.child("scores").child(userUID).child("correct").setValue(correctCount)
+            scoreRef.child("scores").child(userUID).child("wrong").setValue(questionTotal - correctCount)
+        }
     }
 }
